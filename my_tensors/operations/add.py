@@ -1,51 +1,52 @@
-import numpy as np
-from operation import Operation, Tensor, Scalar
-from typing import Tuple, Union
+from .operation import Operation, Tensor, Scalar, Tuple, Union, np
 
 
 class Add(Operation):
-    """Add operation."""
-    def _forward(self,
-                 input_1: Tensor,
-                 input_2: Union[Tensor, Scalar]
-                 ) -> Tensor:
-        """Forward pass of the operation."""
-        # If the second input is a tensor, add the two tensors element-wise.
-        if isinstance(input_2, Tensor):
-            require_grad = input_1.requires_grad or input_2.requires_grad
-            output = Tensor(input_1.data + input_2.data,
-                            requires_grad=require_grad,
-                            grad_fn=self)
-        # If the second input is a scalar, add the scalar to the tensor.
+    """Add operation.
+
+    Attributes:
+        inputs (Tuple[Tensor, ...]): Inputs to the operation.
+        output (Tensor): Output of the operation.
+    """
+    def _forward(self, x: Tensor, y: Union[Tensor, Scalar]) -> Tensor:
+        """Forward pass of the add operation.
+
+        Args:
+            x (Tensor): First tensor.
+            y (Tensor, Scalar): Second tensor.
+
+        Returns:
+            Tensor: Sum of the two tensors.
+        """
+        if isinstance(y, x.__class__):
+            # Element-wise addition
+            data = x.data + y.data
+            requires_grad = x.requires_grad or y.requires_grad
         else:
-            output = Tensor(input_1.data + input_2,
-                            requires_grad=input_1.requires_grad,
-                            grad_fn=self)
-        return output
+            # Scalar addition
+            data = x.data + y
+            requires_grad = x.requires_grad
 
-    def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        """Gradient of the operation."""
-        input_1 = self.inputs[0]
-        input_2 = self.inputs[1]
+        return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
 
-        grad_1 = np.ones_like(input_1.data)
-        if isinstance(input_2, Tensor):
-            grad_2 = np.ones_like(input_2.data)
+    def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray, ...]:
+        """Gradient of the add operation.
+
+        Args:
+            grad (Tensor): Gradient of the loss with respect to the output of
+                the operation.
+
+        Returns:
+            Tuple[Tensor, ...]: Gradient of the loss with respect to the inputs
+                to the operation.
+        """
+        # Gradient of the output with respect to the first input
+        grad_x = grad
+
+        # Gradient of the output with respect to the second input
+        if isinstance(self.inputs[1], self.inputs[0].__class__):
+            grad_y = grad
         else:
-            grad_2 = None
+            grad_y = None
 
-        return grad_1, grad_2
-
-
-if __name__ == "__main__":
-    # Create a tensor.
-    x = Tensor(np.array([[1, 2, 3], [4, 5, 6]]), requires_grad=True)
-    # Create a scalar.
-    y = 2
-    # Add the tensor and the scalar.
-    z = Add()(x, y)
-    # Print the output.
-    print(z)
-    # Print the gradient.
-    z.backward()
-    print(x.grad)
+        return grad_x, grad_y

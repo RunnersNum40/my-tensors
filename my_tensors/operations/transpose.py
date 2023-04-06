@@ -1,20 +1,39 @@
-import numpy as np
-from operation import Operation, Tensor
-from typing import Tuple
+from .operation import Operation, Tensor, Tuple, np
 
 
 class Transpose(Operation):
-    """Transpose operation."""
-    def _forward(self, input_1: Tensor) -> Tensor:
-        """Forward pass of the operation."""
-        require_grad = input_1.requires_grad
-        output = Tensor(input_1.data.T,
-                        requires_grad=require_grad,
-                        grad_fn=self)
-        return output
+    """Transpose operation.
 
-    def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray]:
-        """Gradient of the operation."""
-        grad_1 = grad.T
+    Attributes:
+        inputs (Tuple[Tensor, ...]): Inputs to the operation.
+        output (Tensor): Output of the operation.
+    """
+    def _forward(self, x: Tensor) -> Tensor:
+        """Forward pass of the transpose operation.
 
-        return (grad_1,)
+        Args:
+            x (Tensor): Input tensor.
+
+        Returns:
+            Tensor: Transposed tensor.
+        """
+        data = x.data.T
+        requires_grad = x.requires_grad
+
+        return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
+
+    def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray, ...]:
+        """Gradient of the transpose operation.
+
+        Args:
+            grad (Tensor): Gradient of the loss with respect to the output of
+                the operation.
+
+        Returns:
+            Tuple[Tensor, ...]: Gradient of the loss with respect to the inputs
+                to the operation.
+        """
+        # Gradient of the output with respect to the input
+        grad_x = grad.T
+
+        return grad_x,

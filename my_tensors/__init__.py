@@ -1,12 +1,12 @@
-"""Tensor package with automatic differentiation.
+"""Tensor package.
 
-This package contains a tensor class that can be used to perform
-automatic differentiation. The tensor class is a subclass of the
-NumPy ndarray class, so it can be used in place of NumPy arrays.
+Tensors are multidimensional arrays that can be used to represent data in
+neural networks. They can also be used to represent the parameters of a
+neural network.
 """
 
 # Define the __all__ variable
 __all__ = ['Tensor']
 
 # Import the tensor class
-from tensor import Tensor
+from my_tensors.tensor import Tensor

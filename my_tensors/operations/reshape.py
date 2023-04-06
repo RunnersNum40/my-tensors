@@ -1,27 +1,43 @@
-import numpy as np
-from operation import Operation, Tensor
-from typing import Tuple
+from .operation import Operation, Tensor, Tuple, np
 
 
 class Reshape(Operation):
-    """Reshape operation."""
-    def __init__(self, shape: tuple):
-        """Initialize the operation."""
+    """Reshape operation.
+
+    Attributes:
+        inputs (Tuple[Tensor, ...]): Inputs to the operation.
+        output (Tensor): Output of the operation.
+    """
+    def __init__(self, shape: tuple[int, ...]) -> None:
         super().__init__()
         self.shape = shape
 
-    def _forward(self, input_1: Tensor) -> Tensor:
-        """Forward pass of the operation."""
-        require_grad = input_1.requires_grad
-        output = Tensor(input_1.data.reshape(self.shape),
-                        requires_grad=require_grad,
-                        grad_fn=self)
-        return output
+    def _forward(self, x: Tensor) -> Tensor:
+        """Forward pass of the reshape operation.
 
-    def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray]:
-        """Gradient of the operation."""
-        input_1 = self.inputs[0]
+        Args:
+            x (Tensor): Input tensor.
 
-        grad_1 = grad.reshape(input_1.data.shape)
+        Returns:
+            Tensor: Reshaped tensor.
+        """
+        data = x.data.reshape(self.shape)
+        requires_grad = x.requires_grad
 
-        return (grad_1,)
+        return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
+
+    def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray, ...]:
+        """Gradient of the reshape operation.
+
+        Args:
+            grad (Tensor): Gradient of the loss with respect to the output of
+                the operation.
+
+        Returns:
+            Tuple[Tensor, ...]: Gradient of the loss with respect to the inputs
+                to the operation.
+        """
+        # Gradient of the output with respect to the input
+        grad_x = grad.reshape(self.inputs[0].shape)
+
+        return grad_x,

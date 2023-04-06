@@ -1,30 +1,40 @@
 import numpy as np
-from ..tensor import Tensor
 from typing import Tuple, Union, Any
-
+from my_tensors.tensor import Tensor
 
 Scalar = Union[int, float]
+Input = Union[Tensor, Scalar, tuple]
 
 
 class Operation:
     """Operation base-class.
 
     Operations are used to represent the computations that are performed on
-    tensors in a neural network. Operations are used to represent the forward
-    and backward passes of a neural network.
+    tensors. Operations map an arbitrary number of inputs to a single output.
+
+    Forward passes return the output of the operation. Backward passes return
+    the gradient of the output of the operation with respect to the inputs to
+    the operation.
+
+    A set of operations defines a computational graph. The graph is used to
+    calculate the gradient of the output of the graph with respect to the
+    inital parameters of the graph.
 
     Attributes:
         inputs (Tuple[Tensor, ...]): Inputs to the operation.
         output (Tensor): Output of the operation.
     """
     def __init__(self) -> None:
-        """Constructor."""
+        """Operation constructor.
+
+        Operations are initialized with no inputs or outputs.
+        """
         # Initialize the inputs and output to None.
         self.inputs = None
         self.output = None
 
     def forward(self,
-                *inputs: Tuple[Union[Tensor, Scalar, tuple], ...]
+                *inputs: Tuple[Input, ...]
                 ) -> Tensor:
         """Forward pass of the operation.
 
@@ -38,15 +48,9 @@ class Operation:
             TypeError: If any of the inputs are numpy arrays.
             TypeError: If the first input is not a tensor.
         """
-        if any(isinstance(input_, np.ndarray) for input_ in inputs):
-            raise TypeError("Convert numpy arrays to tensors before \
-                            passing them to operations.")
-
-        if not isinstance(inputs[0], Tensor):
-            raise TypeError("Inputs to operations must be tensors.")
-
         self.inputs = inputs
         self.output = self._forward(*inputs)
+        self.output.grad_fn = self
 
         return self.output
 

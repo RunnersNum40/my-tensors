@@ -1,29 +1,33 @@
-from .operation import Operation, Tensor, Tuple, np
+from .operation import Operation, Tensor, Tuple, Union, np
 
 
-class Log(Operation):
-    """Netural Log operation.
+class GetSlice(Operation):
+    """Get slice operation.
 
     Attributes:
         inputs (Tuple[Tensor, ...]): Inputs to the operation.
         output (Tensor): Output of the operation.
     """
+    def __init__(self, key: Union[int, slice, tuple]) -> None:
+        super().__init__()
+        self.key = key
+
     def _forward(self, x: Tensor) -> Tensor:
-        """Forward pass of the log operation.
+        """Forward pass of the get slice operation.
 
         Args:
             x (Tensor): Input tensor.
 
         Returns:
-            Tensor: Log of the input tensor.
+            Tensor: Sliced tensor.
         """
-        data = np.log(x.data)
+        data = x.data[self.key]
         requires_grad = x.requires_grad
 
         return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
 
     def _backward(self, grad: np.ndarray) -> Tuple[np.ndarray, ...]:
-        """Gradient of the log operation.
+        """Gradient of the get slice operation.
 
         Args:
             grad (Tensor): Gradient of the loss with respect to the output of
@@ -34,6 +38,7 @@ class Log(Operation):
                 to the operation.
         """
         # Gradient of the output with respect to the input
-        grad_x = grad / self.inputs[0].data
+        grad_x = np.zeros_like(self.inputs[0].data)
+        grad_x[self.key] = grad
 
         return grad_x,
