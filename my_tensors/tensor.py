@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Union, Tuple
+from typing import Union, Tuple, List
 
 
 class Tensor:
@@ -23,7 +23,7 @@ class Tensor:
     """
     def __init__(self,
                  data: Union[np.ndarray, list, tuple, int, float],
-                 requires_grad: bool,
+                 requires_grad: bool = True,
                  grad_fn: "operations.Operation" = None
                  ) -> None:
         """Initializes a tensor.
@@ -38,10 +38,16 @@ class Tensor:
         self.data = np.array(data)
         self.requires_grad = requires_grad
         self.grad_fn = grad_fn
-        # Initialize the gradient to None
-        self.grad = None
+        # Initialize the gradient
+        self.zero_grad()
 
-    def backwards(self, grad: np.ndarray = None) -> None:
+    def zero_grad(self) -> None:
+        """Sets the gradient of the tensor to None."""
+        self.grad = np.zeros_like(self.data, dtype=np.float64)
+
+    def backward(self,
+                 grad: np.ndarray = None
+                 ) -> Union[Tuple[np.ndarray, ...], None]:
         """Performs a backward pass through the computational graph.
 
         Args:
@@ -62,10 +68,10 @@ class Tensor:
                 grads = self.grad_fn.backward(grad)
                 for input_tensor, input_grad in zip(self.grad_fn.inputs, grads):  # noqa: E501
                     if isinstance(input_tensor, Tensor):
-                        input_tensor.backwards(input_grad)
+                        input_tensor.backward(input_grad)
             # If the tensor is a leaf node
             else:
-                self.grad = grad
+                self.grad += grad
 
     @property
     def leaf(self) -> bool:
@@ -96,6 +102,10 @@ class Tensor:
     def numpy(self) -> np.ndarray:
         """Returns the data in the tensor as a numpy array."""
         return self.data
+
+    def list(self) -> list:
+        """Returns the data in the tensor as a list."""
+        return self.data.tolist()
 
     def __add__(self, other: "operations.Input") -> "Tensor":
         """Adds a tensor to the current tensor."""
@@ -275,6 +285,23 @@ class Tensor:
         """Alias for the flatten function."""
         return flatten(self)
 
+    def graph(self, level: int = 0) -> str:
+        """Returns a string representation of the computational graph.
+
+        Args:
+            level: The level of the computational graph the tensor is on.
+        """
+        indent = "\t" * level
+        if self.grad_fn is not None:
+            ret = f"{indent}{self.grad_fn}\n"
+            for child in self.grad_fn.inputs:
+                if isinstance(child, Tensor):
+                    ret += child.graph(level + 1)
+        else:
+            ret = f"{indent}Parameter({self.shape})\n"
+
+        return ret
+
     def __len__(self) -> int:
         """Returns the length of the tensor."""
         return len(self.data)
@@ -441,6 +468,12 @@ def dot(tensor1: Tensor, tensor2: Tensor) -> Tensor:
 def shape(tensor: Tensor) -> Tuple[int, ...]:
     """Alias for the shape property of a tensor."""
     return tensor.shape
+
+
+def concatenate(tensors: List[Tensor], axis: int = 0) -> Tensor:
+    """Concatenates a list of tensors."""
+    operation = operations.Concatenate(axis)
+    return operation(tensors)
 
 
 # This deals with the circular import

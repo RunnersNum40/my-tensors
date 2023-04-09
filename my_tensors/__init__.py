@@ -6,7 +6,8 @@ neural network.
 """
 
 # Define the __all__ variable
-__all__ = ['Tensor']
+__all__ = ["Tensor", "operations"]
 
 # Import the tensor class
 from my_tensors.tensor import Tensor
+from my_tensors import operations
