@@ -1,4 +1,4 @@
-from .operation import Operation, Tensor, Scalar, Tuple, Union, np
+from .operation import Operation, Tensor, Tuple, np
 
 
 class Subtract(Operation):
@@ -8,7 +8,7 @@ class Subtract(Operation):
         inputs (Tuple[Tensor, ...]): Inputs to the operation.
         output (Tensor): Output of the operation.
     """
-    def _forward(self, x: Tensor, y: Union[Tensor, Scalar]) -> Tensor:
+    def _forward(self, x: Tensor, y: Tensor) -> Tensor:
         """Forward pass of the subtract operation.
 
         Args:
@@ -18,14 +18,10 @@ class Subtract(Operation):
         Returns:
             Tensor: Difference of the two tensors.
         """
-        if isinstance(y, x.__class__):
-            # Element-wise subtraction
-            data = x.data - y.data
-            requires_grad = x.requires_grad or y.requires_grad
-        else:
-            # Scalar subtraction
-            data = x.data - y
-            requires_grad = x.requires_grad
+        # Element-wise subtraction if both inputs are tensors
+        # Scalar subtraction if one of the inputs is a scalar
+        data = x.data - y.data
+        requires_grad = x.requires_grad or y.requires_grad
 
         return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
 
@@ -42,11 +38,11 @@ class Subtract(Operation):
         """
         # Gradient of the output with respect to the first input
         grad_x = grad
-
+        if len(self.inputs[0].shape) == 0:
+            grad_x = np.sum(grad_x)
         # Gradient of the output with respect to the second input
-        if isinstance(self.inputs[1], self.inputs[0].__class__):
-            grad_y = -grad
-        else:
-            grad_y = None
+        grad_y = -grad
+        if len(self.inputs[1].shape) == 0:
+            grad_y = -np.sum(grad_y)
 
         return grad_x, grad_y

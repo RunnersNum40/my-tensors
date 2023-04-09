@@ -14,7 +14,7 @@ Methods:
 """
 
 # Define the __all__ variable
-__all__ = ["Operation", "Input", "Add", "Subtract", "Multiply", "Divide", "Sum", "Mean", "Transpose", "MatMul", "GetSlice", "SetSlice", "Reshape", "Flatten", "Sin", "Cos", "Tan", "ArcSin", "ArcCos", "ArcTan", "Sinh", "Cosh", "Tanh", "ArcSinh", "ArcCosh", "ArcTanh", "Exp", "Log", "Log2", "Log10", "Abs", "Sqrt", "Dot"]  # noqa: E501
+__all__ = ["Operation", "Input", "Add", "Subtract", "Multiply", "Divide", "Sum", "Mean", "Transpose", "MatMul", "GetSlice", "SetSlice", "Reshape", "Flatten", "Sin", "Cos", "Tan", "ArcSin", "ArcCos", "ArcTan", "Sinh", "Cosh", "Tanh", "ArcSinh", "ArcCosh", "ArcTanh", "Exp", "Log", "Log2", "Log10", "Abs", "Sqrt", "Dot", "Concatenate", "Power"]  # noqa: E501
 
 # Import the operations module
 from my_tensors.operations.operation import Operation, Input
@@ -49,3 +49,5 @@ from my_tensors.operations.log10 import Log10
 from my_tensors.operations.absolute import Abs
 from my_tensors.operations.sqrt import Sqrt
 from my_tensors.operations.dot import Dot
+from my_tensors.operations.concatonate import Concatenate
+from my_tensors.operations.power import Power

@@ -48,8 +48,9 @@ class Operation:
             TypeError: If any of the inputs are numpy arrays.
             TypeError: If the first input is not a tensor.
         """
-        self.inputs = inputs
-        self.output = self._forward(*inputs)
+        # Convert the inputs to tensors if they are not already tensors.
+        self.inputs = [Tensor(input, requires_grad=False) if not isinstance(input, Tensor) else input for input in inputs]  # noqa: E501
+        self.output = self._forward(*self.inputs)
         self.output.grad_fn = self
 
         return self.output

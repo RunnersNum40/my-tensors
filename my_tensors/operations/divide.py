@@ -1,4 +1,4 @@
-from .operation import Operation, Tensor, Scalar, Tuple, Union, np
+from .operation import Operation, Tensor, Tuple, np
 
 
 class Divide(Operation):
@@ -8,24 +8,20 @@ class Divide(Operation):
         inputs (Tuple[Tensor, ...]): Inputs to the operation.
         output (Tensor): Output of the operation.
     """
-    def _forward(self, x: Tensor, y: Union[Tensor, Scalar]) -> Tensor:
+    def _forward(self, x: Tensor, y: Tensor) -> Tensor:
         """Forward pass of the divide operation.
 
         Args:
             x (Tensor): First tensor.
-            y (Tensor, Scalar): Second tensor.
+            y (Tensor): Second tensor.
 
         Returns:
             Tensor: Quotient of the two tensors.
         """
-        if isinstance(y, x.__class__):
-            # Element-wise division
-            data = x.data / y.data
-            requires_grad = x.requires_grad or y.requires_grad
-        else:
-            # Scalar division
-            data = x.data / y
-            requires_grad = x.requires_grad
+        # Element-wise division if both inputs are tensors
+        # Scalar division if one of the inputs is a scalar
+        data = x.data / y.data
+        requires_grad = x.requires_grad or y.requires_grad
 
         return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
 
@@ -42,11 +38,11 @@ class Divide(Operation):
         """
         # Gradient of the output with respect to the first input
         grad_x = grad / self.inputs[1].data
-
+        if len(self.inputs[0].shape) == 0:
+            grad_x = np.sum(grad_x)
         # Gradient of the output with respect to the second input
-        if isinstance(self.inputs[1], self.inputs[0].__class__):
-            grad_y = -grad * self.inputs[0].data / self.inputs[1].data ** 2
-        else:
-            grad_y = None
+        grad_y = -grad * self.inputs[0].data / self.inputs[1].data ** 2
+        if len(self.inputs[1].shape) == 0:
+            grad_y = np.sum(grad_y)
 
         return grad_x, grad_y
