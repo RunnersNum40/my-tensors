@@ -42,15 +42,13 @@ class Mean(Operation):
             Tuple[Tensor, ...]: Gradient of the loss with respect to the inputs
                 to the operation.
         """
-        # Gradient of the output with respect to the input
         if self.axis is None:
             grad_x = np.ones_like(self.inputs[0].data) * grad
             grad_x /= self.inputs[0].data.size
         else:
             # Repeat the gradient along the axis
-            grad_x = np.repeat(grad,
-                               self.inputs[0].data.shape[self.axis],
-                               axis=self.axis)
+            grad_x = grad.reshape(1, *grad.shape) * np.ones_like(self.inputs[0].data)
+            # Divide by the number of elements in the axis
             grad_x /= self.inputs[0].data.shape[self.axis]
 
         return grad_x,

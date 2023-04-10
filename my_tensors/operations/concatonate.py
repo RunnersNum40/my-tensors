@@ -22,11 +22,12 @@ class Concatenate(Operation):
         Returns:
             Tensor: Output of the operation.
         """
-        self.inputs = inputs
+        # Get the numpy arrays from the inputs
+        inputs_data = [input.data for input in inputs]
+        data = np.concatenate(inputs_data, axis=self.axis)
+        requires_grad = any(input.requires_grad for input in inputs)
 
-        output = np.concatenate(inputs, axis=self.axis)
-
-        return output
+        return Tensor(data=data, requires_grad=requires_grad, grad_fn=self)
 
     def _backward(self, grad: Tensor) -> None:
         """Gradient of the operation.
@@ -38,10 +39,15 @@ class Concatenate(Operation):
         grads = []
 
         for input in self.inputs:
-            shape = list(input.shape)
-            shape[self.axis] = 1
-            shape = tuple(shape)
-
-            grads.append(grad.get_slice(self.axis, 0, shape))
+            # Get the shape of the input
+            shape = input.data.shape
+            # Get the number of elements in the axis
+            num_elements = shape[self.axis]
+            # Remove the number of elements from the gradient along the axis
+            grad_input = np.take(grad.data, range(num_elements), axis=self.axis)
+            # Append the gradient to the list
+            grads.append(grad_input)
+            # Remove the number of elements from the gradient
+            grad = np.delete(grad.data, range(num_elements), axis=self.axis)
 
         return tuple(grads)

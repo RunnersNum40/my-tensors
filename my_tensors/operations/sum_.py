@@ -42,13 +42,10 @@ class Sum(Operation):
             Tuple[Tensor, ...]: Gradient of the loss with respect to the inputs
                 to the operation.
         """
-        # Gradient of the output with respect to the input
         if self.axis is None:
             grad_x = np.ones_like(self.inputs[0].data) * grad
         else:
             # Repeat the gradient along the axis
-            grad_x = np.repeat(grad,
-                               self.inputs[0].data.shape[self.axis],
-                               axis=self.axis)
+            grad_x = grad.reshape(1, *grad.shape) * np.ones_like(self.inputs[0].data)
 
         return grad_x,

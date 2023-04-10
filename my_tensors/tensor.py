@@ -359,19 +359,19 @@ def tan(tensor: Tensor) -> Tensor:
 
 def arcsin(tensor: Tensor) -> Tensor:
     """Returns the arcsine of a tensor."""
-    operation = operations.Arcsin()
+    operation = operations.ArcSin()
     return operation(tensor)
 
 
 def arccos(tensor: Tensor) -> Tensor:
     """Returns the arccosine of a tensor."""
-    operation = operations.Arccos()
+    operation = operations.ArcCos()
     return operation(tensor)
 
 
 def arctan(tensor: Tensor) -> Tensor:
     """Returns the arctangent of a tensor."""
-    operation = operations.Arctan()
+    operation = operations.ArcTan()
     return operation(tensor)
 
 
@@ -395,19 +395,19 @@ def tanh(tensor: Tensor) -> Tensor:
 
 def arcsinh(tensor: Tensor) -> Tensor:
     """Returns the hyperbolic arcsine of a tensor."""
-    operation = operations.Arcsinh()
+    operation = operations.ArcSinh()
     return operation(tensor)
 
 
 def arccosh(tensor: Tensor) -> Tensor:
     """Returns the hyperbolic arccosine of a tensor."""
-    operation = operations.Arccosh()
+    operation = operations.ArcCosh()
     return operation(tensor)
 
 
 def arctanh(tensor: Tensor) -> Tensor:
     """Returns the hyperbolic arctangent of a tensor."""
-    operation = operations.Arctanh()
+    operation = operations.ArcTanh()
     return operation(tensor)
 
 
@@ -459,9 +459,12 @@ def flatten(tensor: Tensor) -> Tensor:
     return operation(tensor)
 
 
-def dot(tensor1: Tensor, tensor2: Tensor) -> Tensor:
+def dot(tensor1: Tensor,
+        tensor2: Tensor,
+        axes: Tuple[int, ...] = None
+        ) -> Tensor:
     """Performs a dot product between two tensors."""
-    operation = operations.Dot()
+    operation = operations.Dot(axes)
     return operation(tensor1, tensor2)
 
 
@@ -473,7 +476,7 @@ def shape(tensor: Tensor) -> Tuple[int, ...]:
 def concatenate(tensors: List[Tensor], axis: int = 0) -> Tensor:
     """Concatenates a list of tensors."""
     operation = operations.Concatenate(axis)
-    return operation(tensors)
+    return operation(*tensors)
 
 
 # This deals with the circular import
